@@ -1,0 +1,11 @@
+<h1> Here is my blockchain </h1>
+{% for block in medchain.chain %}
+<div style="border: 2px solid cyan; margin: 10px; padding: 10px;">
+    <h4>Block Number: {{ forloop.counter0 }}</h4>
+    <p>Timestamp: {{block.timestamp}}</p>
+    <p>Last Hash: {{block.last_hash}}</p>
+    <p>Hash: {{block.hash}}</p>
+    <p>Difficulty: {{block.difficulty}}</p>
+    <p>Data: {{block.data}}</p>
+</div>
+{% endfor %}
