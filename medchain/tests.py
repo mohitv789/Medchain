@@ -2,7 +2,11 @@ from django.test import TestCase
 import time
 
 from numpy import block
-from medchain.views import GENESIS_DATA, Block, Medchain
+from medchain import transaction
+from medchain.transaction import Transaction
+from medchain.block import GENESIS_DATA, Block
+from medchain.blockchain import Medchain
+from medchain.wallet import Wallet
 from .config import MINE_RATE,SECONDS
 from .helper import crypto_hash, hex_to_binary
 import pytest
@@ -140,5 +144,79 @@ class MedchainTest(TestCase):
         new_blockchain = Medchain()
         with pytest.raises(Exception,match="Cannot replace. The incoming chain is invalid"):
             new_blockchain.replace_chain(old_blockchain.chain)
-        
 
+    def test_verify_valid_signature(self):
+        data = {'foo':'test_data'}
+        wallet = Wallet()
+        signature = wallet.sign(data)
+        assert Wallet.verify(wallet.public_key,data,signature)
+
+    def test_verify_invalid_signature(self):
+        data = {'foo':'test_data'}
+        wallet = Wallet()
+        signature = wallet.sign(data)
+        assert not Wallet.verify(Wallet().public_key,data,signature)
+
+    def test_transaction(self):
+        sender_wallet = Wallet()
+        recipient = "recipient"
+        amount = 50
+        transaction = Transaction(sender_wallet,recipient,amount)
+        assert transaction.output[recipient] == amount
+        assert transaction.output[sender_wallet.address] == sender_wallet.balance - amount
+        assert 'timestamp' in transaction.input
+        assert transaction.input['amount'] == sender_wallet.balance
+        assert transaction.input['address'] == sender_wallet.address  
+        assert transaction.input['public_key'] == sender_wallet.public_key
+        assert Wallet.verify(
+            transaction.input['public_key'],
+            transaction.output,
+            transaction.input['signature']
+        )
+
+    def test_transaction_update_exceeds_balance(self):      
+        sender_wallet = Wallet()
+        transaction = Transaction(sender_wallet,"recipient",50)
+        with pytest.raises(Exception,match="Amount exceeds balance"):
+            transaction.update(sender_wallet,"new_recipient",9001)
+    
+    def test_transaction_update(self):      
+        sender_wallet = Wallet()
+        first_recipient = "first_recipient"
+        first_amount = 50
+        transaction = Transaction(sender_wallet,first_recipient,first_amount)
+        next_recipient = "next_recipient"
+        next_amount = 75
+        transaction.update(sender_wallet,next_recipient,next_amount)
+        assert transaction.output[next_recipient] == next_amount
+        assert transaction.output[sender_wallet.address] == sender_wallet.balance - first_amount - next_amount
+        assert Wallet.verify(
+            transaction.input['public_key'],
+            transaction.output,
+            transaction.input['signature']
+        )
+        to_first_again_amount = 25
+        transaction.update(sender_wallet,first_recipient,to_first_again_amount)
+        assert transaction.output[first_recipient] == first_amount + to_first_again_amount
+        assert transaction.output[sender_wallet.address] == sender_wallet.balance - first_amount - next_amount - to_first_again_amount
+        assert Wallet.verify(
+            transaction.input['public_key'],
+            transaction.output,
+            transaction.input['signature']
+        )
+
+    def test_is_valid_transaction(self):
+        Transaction.is_valid_transaction(Transaction(Wallet(),"recipient",50))
+    
+    def test_valid_transaction_with_invalid_output(self):
+        sender_wallet = Wallet()
+        transaction = Transaction(sender_wallet,"recipient",50)
+        transaction.output[sender_wallet.address] = 9001
+        with pytest.raises(Exception,match="Invalid transaction output values"):
+            Transaction.is_valid_transaction(transaction)
+        
+    def test_valid_transaction_with_invalid_signature(self):
+        transaction = Transaction(Wallet(),'recipient',50)
+        transaction.input["signature"] = Wallet().sign(transaction.output)
+        with pytest.raises(Exception,match="Invalid signature"):
+            Transaction.is_valid_transaction(transaction)

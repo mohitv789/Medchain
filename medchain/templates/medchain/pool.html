@@ -1,0 +1,9 @@
+<div>
+    <h3>Transaction Pool</h3>
+    {% for item in transaction_pool %}
+        <p> {{item.id}} Transactions final Settlement as below:</p>
+        {% for key,value in item.output.items %}
+            <p>Address {{key}} has Balance {{value}}</p>
+        {%endfor%}
+    {% endfor %}
+</div>

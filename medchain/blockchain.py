@@ -1,7 +1,8 @@
 
+import requests
 import blockchain
 from medchain.block import Block
-
+from urllib.parse import urlparse
 
 class Medchain():
 
@@ -15,7 +16,8 @@ class Medchain():
     def __repr__(self):
         return f'Medchain: {self.chain}'
 
-    def replace_chain(self,chain):
+
+    def replace_chain(self,chain):        
         if len(chain) <= len(self.chain):
             raise Exception("Cannot replace. The incoming chain must be longer.")
         try:
