@@ -7,5 +7,6 @@
     <p>Hash: {{block.hash}}</p>
     <p>Difficulty: {{block.difficulty}}</p>
     <p>Data: {{block.data}}</p>
+    <a href="{% url 'get_block_data' ts=block.timestamp %}">Redirect to Block</a>
 </div>
 {% endfor %}

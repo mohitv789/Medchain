@@ -22,6 +22,11 @@ def get_blockchain(request):
     # Maybe try to add call to all nodes here
     return render(request,'medchain/blockchain.html',{'medchain': blockchain})
 
+def get_block_data(request,ts):
+    block = blockchain.get_block(ts)
+    print(block)
+    return render(request,'medchain/block.html',{'block': block})
+
 def mine_block(request):    
     transaction_data = transaction_pool.transaction_data()
     transaction_data.append(Transaction.reward_transaction(wallet).to_json())

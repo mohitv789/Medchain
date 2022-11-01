@@ -1,0 +1,26 @@
+
+<div style="margin: 10px; padding: 10px;">
+    <h3> Block Data </h3>
+    <p>Timestamp: {{block.timestamp}}</p>
+    <p>Last Hash: {{block.last_hash}}</p>
+    <p>Hash: {{block.hash}}</p>
+    <p>Difficulty: {{block.difficulty}}</p>
+    <hr>    
+    {% for data in block.data %}
+    <h3>Transaction Data in Block</h3>
+    <p>Transaction Timestamp : {{data.input.timestamp}}</p>
+    <p>Initial Wallet Balance : {{data.input.amount}}</p>
+    <p>Sender Wallet Address : {{data.input.address}}</p>
+    <p>Sender Public Key: {{data.input.public_key}}</p>
+    <h3>Final Wallet Status: </h3>
+    <div>
+        {%for key,value in data.output.items %}
+            <div style="border 2px solid; margin: 10px; padding: 10px;">
+                <p> Address: {{key}} </p>
+                <p> Balance: {{value}}</p>
+            </div>
+        {% endfor %}
+    </div>   
+    <hr>
+    {% endfor %}
+</div>
