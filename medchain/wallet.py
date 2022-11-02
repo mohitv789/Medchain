@@ -5,6 +5,8 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes, serialization
 from medchain.config import STARTING_BALANCE
 from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature, decode_dss_signature
+
+
 class Wallet:
 
     def __init__(self, blockchain=None):

@@ -24,7 +24,6 @@ def get_blockchain(request):
 
 def get_block_data(request,ts):
     block = blockchain.get_block(ts)
-    print(block)
     return render(request,'medchain/block.html',{'block': block})
 
 def mine_block(request):    
@@ -78,20 +77,23 @@ def success(request):
     return render(request, 'medchain/success.html')
 
 def route_wallet_info(request):
-    return render(request, 'medchain/wallet-info.html',{ 'address': wallet.address, 'balance': wallet.balance })
+    balance = wallet.calculate_balance(blockchain,wallet.address)
+    return render(request, 'medchain/wallet-info.html',{ 'address': wallet.address, 'balance': balance })
 
 def route_known_addresses(request):
-    known_addresses = set()
+    known_addresses = []
 
     for block in blockchain.chain:
         for transaction in block.data:
-            known_addresses.update(transaction['output'].keys())
+            key_dict = transaction['output'].keys()
+            for key in key_dict:
+                if key != wallet.address:
+                    known_addresses.append(key)
+    known_addresses = list(set(known_addresses))
 
-    return render(request, 'medchain/known-wallet.html',{known_addresses:list(known_addresses)})
+    return render(request, 'medchain/known-wallet.html',{"known_addresses":known_addresses})
 
 def route_unmined_transactions(request):
-    
-    print(transaction_pool.transaction_data())
     return render(request, 'medchain/pool.html',{"transaction_pool":transaction_pool.transaction_data()})
 
 
